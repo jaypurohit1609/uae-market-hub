@@ -1,73 +1,37 @@
-```html
 <!DOCTYPE html>
 <html>
 <head>
+<title>UAE Market Hub AE</title>
 
-<title>UAE Market Hub</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
-
 body{
-font-family:Arial;
-background:#f5f5f5;
-margin:0;
-padding:20px;
-}
-
-.container{
-max-width:900px;
-margin:auto;
-}
-
-h1{
-text-align:center;
+font-family: Arial;
+margin:40px;
 }
 
 input,button{
 width:100%;
 padding:10px;
-margin-top:8px;
+margin:5px 0;
 }
 
 button{
-background:#111827;
+background:#0a1930;
 color:white;
 border:none;
 cursor:pointer;
 }
-
-.card{
-background:white;
-padding:15px;
-margin-top:15px;
-border-radius:6px;
-box-shadow:0 2px 5px rgba(0,0,0,0.1);
-}
-
-img{
-width:100%;
-margin-top:10px;
-}
-
-.deleteBtn{
-background:red;
-margin-top:10px;
-}
-
 </style>
 
 </head>
 
 <body>
 
-<div class="container">
+<h1>UAE Market Hub AE</h1>
 
-<h1>UAE Market Hub 🇦🇪</h1>
-
-<h2>Login / Sign Up</h2>
+<h3>Login / Sign Up</h3>
 
 <input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
@@ -76,225 +40,118 @@ margin-top:10px;
 <button onclick="login()">Login</button>
 <button onclick="logout()">Logout</button>
 
-<p id="status">Not logged in</p>
+<p id="userStatus">Not logged in</p>
 
 <hr>
 
 <h2>Post Item</h2>
 
-<input id="title" placeholder="Item Title">
+<input id="title" placeholder="Item title">
 <input id="price" placeholder="Price">
 <input id="location" placeholder="Location">
+<input id="image" type="file">
 
-<input type="file" id="image">
-
-<button onclick="postItem()">Post Listing</button>
-
-<hr>
-
-<h2>All Listings</h2>
-
-<div id="listings"></div>
+<button onclick="postItem()">Post Item</button>
 
 <hr>
 
-<h2>My Listings</h2>
+<h2>Items</h2>
 
-<div id="myListings"></div>
-
-</div>
+<div id="items"></div>
 
 <script>
 
-const supabaseUrl="https://pseajfcwbirfplujhlye.supabase.co"
-const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzZWFqZmN3YmlyZnBsdWpobHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzk2NjksImV4cCI6MjA4ODcxNTY2OX0.hnDRhO7DX2n0RZoLD9LjdwxlOEch4dTwjhqzE4m_Q8Q"
+const SUPABASE_URL = "https://pseajfcwbirfplujhlye.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzZWFqZmN3YmlyZnBsdWpobHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzk2NjksImV4cCI6MjA4ODcxNTY2OX0.hnDRhO7DX2n0RZoLD9LjdwxlOEch4dTwjhqzE4m_Q8Q"
 
-const supabase = window.supabase.createClient(supabaseUrl,supabaseKey)
+const supabase = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
-
-// SIGNUP
 async function signup(){
 
-let email=document.getElementById("email").value
-let password=document.getElementById("password").value
+const email = document.getElementById("email").value
+const password = document.getElementById("password").value
 
-const {error}=await supabase.auth.signUp({
+const {data,error} = await supabase.auth.signUp({
 email:email,
 password:password
 })
 
-if(error){
-alert(error.message)
-}else{
-alert("Signup successful")
-}
+if(error) alert(error.message)
+else alert("Signup success! Check email.")
 
 }
 
-
-// LOGIN
 async function login(){
 
-let email=document.getElementById("email").value
-let password=document.getElementById("password").value
+const email = document.getElementById("email").value
+const password = document.getElementById("password").value
 
-const {error}=await supabase.auth.signInWithPassword({
+const {data,error} = await supabase.auth.signInWithPassword({
 email:email,
 password:password
 })
 
-if(error){
-alert(error.message)
-}else{
-document.getElementById("status").innerText="Logged in"
-loadMyListings()
+if(error) alert(error.message)
+else{
+alert("Login successful")
+document.getElementById("userStatus").innerText="Logged in as "+email
 }
 
 }
 
-
-// LOGOUT
 async function logout(){
 
 await supabase.auth.signOut()
-
-document.getElementById("status").innerText="Logged out"
+document.getElementById("userStatus").innerText="Not logged in"
 
 }
 
-
-// POST ITEM
 async function postItem(){
 
-const {data:{user}}=await supabase.auth.getUser()
+const title=document.getElementById("title").value
+const price=document.getElementById("price").value
+const location=document.getElementById("location").value
 
-if(!user){
-alert("Please login first")
-return
-}
-
-let title=document.getElementById("title").value
-let price=document.getElementById("price").value
-let location=document.getElementById("location").value
-
-let file=document.getElementById("image").files[0]
-
-let filename=Date.now()+"_"+file.name
-
-const {error:uploadError}=await supabase.storage
-.from("images")
-.upload(filename,file)
-
-if(uploadError){
-alert(uploadError.message)
-return
-}
-
-const {data:urlData}=supabase.storage
-.from("images")
-.getPublicUrl(filename)
-
-let imageUrl=urlData.publicUrl
-
-const {error}=await supabase
+const {data,error} = await supabase
 .from("items")
-.insert([{
-title:title,
-price:price,
-location:location,
-image:imageUrl,
-user_id:user.id
-}])
+.insert([
+{title:title,price:price,location:location}
+])
 
-if(error){
-alert(error.message)
-}else{
-alert("Item posted successfully")
-loadListings()
-loadMyListings()
+if(error) alert(error.message)
+else{
+alert("Item posted!")
+loadItems()
 }
 
 }
 
+async function loadItems(){
 
-// LOAD ALL LISTINGS
-async function loadListings(){
-
-const {data}=await supabase
+const {data,error}=await supabase
 .from("items")
 .select("*")
+.order("id",{ascending:false})
 
-let container=document.getElementById("listings")
-
-container.innerHTML=""
+let html=""
 
 data.forEach(item=>{
-
-container.innerHTML+=`
-<div class="card">
+html+=`
+<div style="border:1px solid #ccc;padding:10px;margin:10px 0">
 <h3>${item.title}</h3>
 <p>Price: ${item.price}</p>
 <p>Location: ${item.location}</p>
-<img src="${item.image}">
 </div>
 `
-
 })
 
-}
-
-
-// LOAD MY LISTINGS
-async function loadMyListings(){
-
-const {data:{user}}=await supabase.auth.getUser()
-
-if(!user) return
-
-const {data}=await supabase
-.from("items")
-.select("*")
-.eq("user_id",user.id)
-
-let container=document.getElementById("myListings")
-
-container.innerHTML=""
-
-data.forEach(item=>{
-
-container.innerHTML+=`
-<div class="card">
-<h3>${item.title}</h3>
-<p>${item.price}</p>
-<img src="${item.image}">
-<button class="deleteBtn" onclick="deleteItem('${item.id}')">Delete</button>
-</div>
-`
-
-})
+document.getElementById("items").innerHTML=html
 
 }
 
-
-// DELETE ITEM
-async function deleteItem(id){
-
-await supabase
-.from("items")
-.delete()
-.eq("id",id)
-
-loadListings()
-loadMyListings()
-
-}
-
-
-// AUTO LOAD LISTINGS
-loadListings()
+loadItems()
 
 </script>
 
 </body>
 </html>
-```
