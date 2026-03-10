@@ -1,79 +1,60 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
+
 <title>UAE Market Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 
 body{
 font-family:Arial;
-background:#f4f4f4;
+background:#f2f2f2;
 margin:0;
+padding:20px;
 }
 
-header{
-background:#0a66c2;
-color:white;
-padding:20px;
+h1{
 text-align:center;
 }
 
 .container{
-width:90%;
+max-width:900px;
 margin:auto;
 }
 
-form{
-background:white;
-padding:20px;
-margin-top:20px;
-border-radius:8px;
-box-shadow:0 2px 5px rgba(0,0,0,0.2);
-}
-
-input,textarea{
+input,button{
 width:100%;
 padding:10px;
-margin:8px 0;
-border:1px solid #ddd;
-border-radius:4px;
+margin-top:8px;
 }
 
 button{
-background:#0a66c2;
+background:#0f172a;
 color:white;
 border:none;
-padding:10px 15px;
 cursor:pointer;
-border-radius:4px;
-}
-
-.products{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
-margin-top:20px;
-margin-bottom:40px;
 }
 
 .card{
 background:white;
 padding:15px;
-border-radius:8px;
-box-shadow:0 2px 5px rgba(0,0,0,0.2);
-}
-
-.card img{
-width:100%;
-height:200px;
-object-fit:cover;
+margin-top:15px;
 border-radius:6px;
+box-shadow:0 2px 5px rgba(0,0,0,0.1);
 }
 
-.price{
-color:green;
-font-weight:bold;
-font-size:18px;
+img{
+max-width:100%;
+margin-top:10px;
+}
+
+.deleteBtn{
+background:red;
+margin-top:10px;
 }
 
 </style>
@@ -82,156 +63,236 @@ font-size:18px;
 
 <body>
 
-<header>
-<h1>UAE Market Hub</h1>
-<p>Buy & Sell in UAE</p>
-</header>
-
 <div class="container">
 
-<form onsubmit="addItem(); return false;">
+<h1>UAE Market Hub 🇦🇪</h1>
 
-<h2>Post an Item</h2>
+<h2>Login / Signup</h2>
 
-<input id="title" placeholder="Item Title" required>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
 
-<input id="price" placeholder="Price (AED)" required>
+<button onclick="signup()">Sign Up</button>
+<button onclick="login()">Login</button>
+<button onclick="logout()">Logout</button>
 
-<input id="location" placeholder="Location" required>
+<p id="status"></p>
 
-<input id="whatsapp" placeholder="WhatsApp Number (971xxxxxxxx)" required>
+<hr>
+
+<h2>Post Item</h2>
+
+<input id="title" placeholder="Item Title">
+<input id="price" placeholder="Price">
+<input id="location" placeholder="Location">
 
 <input type="file" id="image">
 
-<textarea id="desc" placeholder="Item Description"></textarea>
+<button onclick="postItem()">Post Listing</button>
 
-<button type="submit">Post Item</button>
+<hr>
 
-</form>
+<h2>All Listings</h2>
 
+<div id="listings"></div>
 
-<h2>Latest Listings</h2>
+<hr>
 
-<div class="products" id="products"></div>
+<h2>My Listings</h2>
+
+<div id="myListings"></div>
 
 </div>
 
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
 <script>
 
-const supabaseClient = supabase.createClient(
-"https://pseajfcwbirfplujhlye.supabase.co",
-"sb_publishable_HAbdc8lqEmdvOaj5GSwxDg_V0exTvey"
-);
+const supabaseUrl="https://pseajfcwbirfplujhlye.supabase.co"
+const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzZWFqZmN3YmlyZnBsdWpobHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzk2NjksImV4cCI6MjA4ODcxNTY2OX0.hnDRhO7DX2n0RZoLD9LjdwxlOEch4dTwjhqzE4m_Q8Q"
+
+const supabase=supabase.createClient(supabaseUrl,supabaseKey)
 
 
-async function addItem(){
+// SIGNUP
+async function signup(){
 
-let title=document.getElementById("title").value;
-let price=document.getElementById("price").value;
-let location=document.getElementById("location").value;
-let whatsapp=document.getElementById("whatsapp").value;
-let desc=document.getElementById("desc").value;
+let email=document.getElementById("email").value
+let password=document.getElementById("password").value
 
-let file=document.getElementById("image").files[0];
-
-let imageUrl="";
-
-if(file){
-
-let fileName=Date.now()+"_"+file.name;
-
-const {data,error}=await supabaseClient.storage
-.from("images")
-.upload(fileName,file);
+const {error}=await supabase.auth.signUp({
+email:email,
+password:password
+})
 
 if(error){
-alert("Image upload failed");
-console.log(error);
-return;
+alert(error.message)
+}else{
+alert("Signup successful")
 }
 
-imageUrl=`https://pseajfcwbirfplujhlye.supabase.co/storage/v1/object/public/images/${fileName}`;
+}
+
+
+// LOGIN
+async function login(){
+
+let email=document.getElementById("email").value
+let password=document.getElementById("password").value
+
+const {error}=await supabase.auth.signInWithPassword({
+email:email,
+password:password
+})
+
+if(error){
+alert(error.message)
+}else{
+document.getElementById("status").innerText="Logged in"
+loadListings()
+loadMyListings()
+}
 
 }
 
-const { data, error } = await supabaseClient
+
+// LOGOUT
+async function logout(){
+
+await supabase.auth.signOut()
+document.getElementById("status").innerText="Logged out"
+
+}
+
+
+// POST ITEM
+async function postItem(){
+
+const {data:{user}}=await supabase.auth.getUser()
+
+if(!user){
+alert("Please login first")
+return
+}
+
+let title=document.getElementById("title").value
+let price=document.getElementById("price").value
+let location=document.getElementById("location").value
+
+let file=document.getElementById("image").files[0]
+
+let filename=Date.now()+"_"+file.name
+
+const {error:uploadError}=await supabase.storage
+.from("images")
+.upload(filename,file)
+
+if(uploadError){
+alert(uploadError.message)
+return
+}
+
+const {data:urlData}=supabase.storage
+.from("images")
+.getPublicUrl(filename)
+
+let imageUrl=urlData.publicUrl
+
+const {error}=await supabase
 .from("items")
-.insert([
-{
+.insert([{
 title:title,
 price:price,
 location:location,
-whatsapp:whatsapp,
-desc:desc,
-image:imageUrl
-}
-]);
+image:imageUrl,
+user_id:user.id
+}])
 
 if(error){
-alert("Error posting item");
-console.log(error);
-return;
+alert(error.message)
+}else{
+alert("Item posted")
+loadListings()
+loadMyListings()
 }
-
-alert("Item posted successfully");
-
-document.querySelector("form").reset();
-
-loadItems();
 
 }
 
 
+// LOAD ALL LISTINGS
+async function loadListings(){
 
-async function loadItems(){
-
-const { data, error } = await supabaseClient
+const {data}=await supabase
 .from("items")
 .select("*")
-.order("id",{ascending:false});
 
-let container=document.getElementById("products");
-
-container.innerHTML="";
-
-if(!data) return;
+let container=document.getElementById("listings")
+container.innerHTML=""
 
 data.forEach(item=>{
 
 container.innerHTML+=`
-
 <div class="card">
-
-<img src="${item.image}">
-
 <h3>${item.title}</h3>
-
-<div class="price">AED ${item.price}</div>
-
-<p>${item.desc}</p>
-
-<p><b>Location:</b> ${item.location}</p>
-
-<a href="https://wa.me/${item.whatsapp}" target="_blank">
-
-<button>Chat on WhatsApp</button>
-
-</a>
-
+<p>Price: ${item.price}</p>
+<p>Location: ${item.location}</p>
+<img src="${item.image}">
 </div>
+`
 
-`;
-
-});
+})
 
 }
 
-loadItems();
+
+// LOAD MY LISTINGS
+async function loadMyListings(){
+
+const {data:{user}}=await supabase.auth.getUser()
+
+if(!user) return
+
+const {data}=await supabase
+.from("items")
+.select("*")
+.eq("user_id",user.id)
+
+let container=document.getElementById("myListings")
+container.innerHTML=""
+
+data.forEach(item=>{
+
+container.innerHTML+=`
+<div class="card">
+<h3>${item.title}</h3>
+<p>${item.price}</p>
+<img src="${item.image}">
+<button class="deleteBtn" onclick="deleteItem('${item.id}')">Delete</button>
+</div>
+`
+
+})
+
+}
+
+
+// DELETE ITEM
+async function deleteItem(id){
+
+await supabase
+.from("items")
+.delete()
+.eq("id",id)
+
+loadListings()
+loadMyListings()
+
+}
+
+
+// AUTO LOAD LISTINGS
+loadListings()
 
 </script>
 
 </body>
 </html>
+```
