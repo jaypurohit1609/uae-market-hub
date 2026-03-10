@@ -13,7 +13,7 @@ font-family:Arial;
 margin:40px;
 }
 
-input,button{
+input,textarea,button{
 width:100%;
 padding:10px;
 margin:6px 0;
@@ -24,6 +24,17 @@ background:#0a1930;
 color:white;
 border:none;
 cursor:pointer;
+}
+
+.card{
+border:1px solid #ccc;
+padding:15px;
+margin:10px 0;
+}
+
+img{
+max-width:200px;
+margin-top:10px;
 }
 
 </style>
@@ -50,8 +61,14 @@ cursor:pointer;
 <h2>Post Item</h2>
 
 <input id="title" placeholder="Item name">
+
 <input id="price" placeholder="Price">
+
 <input id="location" placeholder="Location">
+
+<textarea id="description" placeholder="Description"></textarea>
+
+<input id="image" type="file">
 
 <button onclick="postItem()">Post Item</button>
 
@@ -119,10 +136,37 @@ async function postItem(){
 const title=document.getElementById("title").value
 const price=document.getElementById("price").value
 const location=document.getElementById("location").value
+const description=document.getElementById("description").value
+
+const file=document.getElementById("image").files[0]
+
+let imageUrl=""
+
+if(file){
+
+const fileName=Date.now()+"-"+file.name
+
+await client.storage
+.from("images")
+.upload(fileName,file)
+
+const {data}=client.storage
+.from("images")
+.getPublicUrl(fileName)
+
+imageUrl=data.publicUrl
+
+}
 
 const {error}=await client
 .from("items")
-.insert([{title,price,location}])
+.insert([{
+title,
+price,
+location,
+description,
+image:imageUrl
+}])
 
 if(error) alert(error.message)
 else{
@@ -143,13 +187,23 @@ const {data}=await client
 let html=""
 
 data.forEach(item=>{
+
 html+=`
-<div style="border:1px solid #ccc;padding:10px;margin:10px 0">
+<div class="card">
+
 <h3>${item.title}</h3>
-<p>Price: ${item.price}</p>
-<p>Location: ${item.location}</p>
+
+<p><b>Price:</b> ${item.price}</p>
+
+<p><b>Location:</b> ${item.location}</p>
+
+<p>${item.description}</p>
+
+${item.image ? `<img src="${item.image}">` : ""}
+
 </div>
 `
+
 })
 
 document.getElementById("items").innerHTML=html
