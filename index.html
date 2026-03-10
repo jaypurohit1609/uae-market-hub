@@ -1,20 +1,22 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 <title>UAE Market Hub AE</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+
 body{
-font-family: Arial;
+font-family:Arial;
 margin:40px;
 }
 
 input,button{
 width:100%;
 padding:10px;
-margin:5px 0;
+margin:6px 0;
 }
 
 button{
@@ -23,6 +25,7 @@ color:white;
 border:none;
 cursor:pointer;
 }
+
 </style>
 
 </head>
@@ -40,16 +43,15 @@ cursor:pointer;
 <button onclick="login()">Login</button>
 <button onclick="logout()">Logout</button>
 
-<p id="userStatus">Not logged in</p>
+<p id="status">Not logged in</p>
 
 <hr>
 
 <h2>Post Item</h2>
 
-<input id="title" placeholder="Item title">
+<input id="title" placeholder="Item name">
 <input id="price" placeholder="Price">
 <input id="location" placeholder="Location">
-<input id="image" type="file">
 
 <button onclick="postItem()">Post Item</button>
 
@@ -62,49 +64,55 @@ cursor:pointer;
 <script>
 
 const SUPABASE_URL = "https://pseajfcwbirfplujhlye.supabase.co"
+
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzZWFqZmN3YmlyZnBsdWpobHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzk2NjksImV4cCI6MjA4ODcxNTY2OX0.hnDRhO7DX2n0RZoLD9LjdwxlOEch4dTwjhqzE4m_Q8Q"
 
-const supabase = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+const { createClient } = supabase
+const client = createClient(SUPABASE_URL, SUPABASE_KEY)
+
 
 async function signup(){
 
-const email = document.getElementById("email").value
-const password = document.getElementById("password").value
+const email=document.getElementById("email").value
+const password=document.getElementById("password").value
 
-const {data,error} = await supabase.auth.signUp({
+const {error}=await client.auth.signUp({
 email:email,
 password:password
 })
 
 if(error) alert(error.message)
-else alert("Signup success! Check email.")
+else alert("Signup successful! Check email.")
 
 }
 
+
 async function login(){
 
-const email = document.getElementById("email").value
-const password = document.getElementById("password").value
+const email=document.getElementById("email").value
+const password=document.getElementById("password").value
 
-const {data,error} = await supabase.auth.signInWithPassword({
+const {error}=await client.auth.signInWithPassword({
 email:email,
 password:password
 })
 
 if(error) alert(error.message)
 else{
-alert("Login successful")
-document.getElementById("userStatus").innerText="Logged in as "+email
+document.getElementById("status").innerText="Logged in as "+email
 }
 
 }
+
 
 async function logout(){
 
-await supabase.auth.signOut()
-document.getElementById("userStatus").innerText="Not logged in"
+await client.auth.signOut()
+
+document.getElementById("status").innerText="Not logged in"
 
 }
+
 
 async function postItem(){
 
@@ -112,11 +120,9 @@ const title=document.getElementById("title").value
 const price=document.getElementById("price").value
 const location=document.getElementById("location").value
 
-const {data,error} = await supabase
+const {error}=await client
 .from("items")
-.insert([
-{title:title,price:price,location:location}
-])
+.insert([{title,price,location}])
 
 if(error) alert(error.message)
 else{
@@ -126,9 +132,10 @@ loadItems()
 
 }
 
+
 async function loadItems(){
 
-const {data,error}=await supabase
+const {data}=await client
 .from("items")
 .select("*")
 .order("id",{ascending:false})
