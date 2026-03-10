@@ -3,37 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UAE Market Hub AE</title>
+    <title>UAE Market Hub AE | Pro Marketplace</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #0a1930;
-            --accent: #25D366; /* WhatsApp Green */
+            --accent: #25D366;
+            --secondary: #e67e22; /* My Ads Color */
             --danger: #ff4d4d;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f4f7f6; color: #333; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 15px; background: #f0f2f5; color: #333; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         
-        h1 { color: var(--primary); text-align: center; }
+        h1 { color: var(--primary); text-align: center; margin-bottom: 30px; }
+        h2 { border-left: 5px solid var(--primary); padding-left: 10px; margin-top: 30px; }
+
+        input, textarea, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
         
-        input, textarea, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* Auth & Navigation Layout */
+        .nav-controls { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+        .nav-controls button { flex: 1; min-width: 120px; }
         
-        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { opacity: 0.9; }
-        
-        .auth-buttons { display: flex; gap: 10px; }
-        
-        /* Grid for items */
+        /* Item Grid */
         .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
-        .card { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 15px; display: flex; flex-direction: column; }
-        .card img { width: 100%; height: 180px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
-        .price-tag { color: var(--primary); font-size: 1.3em; font-weight: bold; margin: 5px 0; }
-        .location-tag { color: #666; font-size: 0.85em; margin-bottom: 10px; }
+        .card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; position: relative; transition: 0.3s; }
+        .card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .card img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; background: #f9f9f9; }
         
-        .whatsapp-btn { background: var(--accent); color: white; text-decoration: none; text-align: center; display: block; padding: 10px; border-radius: 6px; margin-top: auto; }
-        .delete-btn { background: var(--danger); margin-top: 8px; font-size: 14px; }
+        .price-tag { color: var(--primary); font-size: 1.4em; font-weight: 800; margin: 5px 0; }
+        .condition-badge { position: absolute; top: 25px; left: 25px; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 5px; font-size: 0.75em; font-weight: bold; color: var(--primary); }
+        .location-tag { color: #777; font-size: 0.85em; margin-bottom: 10px; display: flex; align-items: center; gap: 4px; }
         
-        .filter-bar { display: flex; gap: 10px; background: #eee; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .whatsapp-btn { background: var(--accent); text-decoration: none; text-align: center; display: block; padding: 12px; border-radius: 8px; color: white; margin-top: auto; font-weight: bold; }
+        .delete-btn { background: var(--danger); margin-top: 8px; font-size: 13px; }
+
+        .empty-state { text-align: center; padding: 50px; color: #999; grid-column: 1 / -1; }
     </style>
 </head>
 <body>
@@ -41,48 +48,60 @@
 <div class="container">
     <h1>🇦🇪 UAE Market Hub</h1>
 
-    <div id="auth-section">
-        <input id="email" placeholder="Email">
-        <input id="password" type="password" placeholder="Password">
-        <div class="auth-buttons">
+    <div id="auth-ui">
+        <div style="display: flex; gap: 10px;">
+            <input id="email" placeholder="Email">
+            <input id="password" type="password" placeholder="Password">
+        </div>
+        <div class="nav-controls">
             <button onclick="signup()">Sign Up</button>
             <button onclick="login()">Login</button>
+            <button style="background:#555" onclick="logout()">Logout</button>
         </div>
-        <button style="background:#555" onclick="logout()">Logout</button>
-        <p id="status" style="text-align:center;">Checking session...</p>
+        <p id="status" style="text-align:center; font-weight: bold;">Checking session...</p>
     </div>
 
     <hr>
 
-    <h2>Post an Item</h2>
-    <input id="title" placeholder="What are you selling?">
-    <div style="display:flex; gap:10px;">
+    <h2>Post your Ad</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <input id="title" placeholder="Item Name">
         <input id="price" placeholder="Price (AED)">
         <select id="category">
             <option value="Electronics">Electronics</option>
             <option value="Vehicles">Vehicles</option>
             <option value="Property">Property</option>
-            <option value="Furniture">Furniture</option>
+            <option value="Fashion">Fashion</option>
             <option value="Other">Other</option>
         </select>
+        <select id="condition">
+            <option value="Brand New">✨ Brand New</option>
+            <option value="Like New">👍 Like New</option>
+            <option value="Used">🚲 Used</option>
+        </select>
     </div>
-    <input id="location" placeholder="Location (e.g. Dubai Marina)">
-    <input id="phone" placeholder="WhatsApp Number (e.g. 971501234567)">
-    <textarea id="description" placeholder="Short description..."></textarea>
+    <input id="location" placeholder="Location (e.g. JBR, Dubai)">
+    <input id="phone" placeholder="WhatsApp Number (97150...)">
+    <textarea id="description" placeholder="Describe your item..."></textarea>
     <input id="image" type="file" accept="image/*">
-    <button onclick="postItem()">🚀 Post Listing</button>
+    <button onclick="postItem()" style="background: var(--accent);">🚀 Publish My Ad</button>
 
     <hr>
 
     <h2>Marketplace</h2>
-    <div class="filter-bar">
+    <div class="nav-controls">
+        <button onclick="loadItems()">🌐 All Market Ads</button>
+        <button style="background: var(--secondary);" onclick="loadMyAds()">👤 My Ads Only</button>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
         <input id="searchBar" onkeyup="filterItems()" placeholder="Search titles...">
-        <select id="filterCategory" onchange="filterItems()" style="width: 200px;">
+        <select id="filterCategory" onchange="filterItems()" style="width: 180px;">
             <option value="All">All Categories</option>
             <option value="Electronics">Electronics</option>
             <option value="Vehicles">Vehicles</option>
             <option value="Property">Property</option>
-            <option value="Furniture">Furniture</option>
+            <option value="Fashion">Fashion</option>
         </select>
     </div>
 
@@ -90,26 +109,25 @@
 </div>
 
 <script>
-// --- CONFIGURATION ---
 const SUPABASE_URL = "https://pseajfcwbirfplujhlye.supabase.co"
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzZWFqZmN3YmlyZnBsdWpobHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzk2NjksImV4cCI6MjA4ODcxNTY2OX0.hnDRhO7DX2n0RZoLD9LjdwxlOEch4dTwjhqzE4m_Q8Q"
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-let allItems = []; // Local storage for searching
+let allItems = [];
 
-// --- AUTH FUNCTIONS ---
+// --- AUTH ---
 async function signup(){
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     const { error } = await supabaseClient.auth.signUp({ email, password });
-    if(error) alert(error.message); else alert("Check your email for confirmation!");
+    if(error) alert(error.message); else alert("Check email for verification!");
 }
 
 async function login(){
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if(error) alert(error.message); else { location.reload(); }
+    if(error) alert(error.message); else location.reload();
 }
 
 async function logout(){
@@ -117,24 +135,16 @@ async function logout(){
     location.reload();
 }
 
-async function checkUser() {
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (user) {
-        document.getElementById("status").innerText = "Logged in as: " + user.email;
-    } else {
-        document.getElementById("status").innerText = "Not logged in";
-    }
-}
-
-// --- CORE FUNCTIONS ---
+// --- CORE ---
 async function postItem() {
     const { data: { user } } = await supabaseClient.auth.getUser();
-    if(!user) return alert("You must be logged in to post!");
+    if(!user) return alert("Login required!");
 
     const title = document.getElementById("title").value;
     const price = document.getElementById("price").value;
     const locationName = document.getElementById("location").value;
     const category = document.getElementById("category").value;
+    const condition = document.getElementById("condition").value;
     const phone = document.getElementById("phone").value;
     const description = document.getElementById("description").value;
     const file = document.getElementById("image").files[0];
@@ -143,24 +153,29 @@ async function postItem() {
     if(file) {
         const fileName = Date.now() + "-" + file.name;
         const { error: uploadError } = await supabaseClient.storage.from("images").upload(fileName, file);
-        if(uploadError) return alert("Upload error: " + uploadError.message);
+        if(uploadError) return alert(uploadError.message);
         const { data } = supabaseClient.storage.from("images").getPublicUrl(fileName);
         imageUrl = data.publicUrl;
     }
 
     const { error } = await supabaseClient.from("items").insert([{
-        title, price, location: locationName, description, category, phone, image: imageUrl, user_id: user.id
+        title, price, location: locationName, description, category, condition, phone, image: imageUrl, user_id: user.id
     }]);
 
-    if(error) alert(error.message); else { alert("Item posted!"); loadItems(); }
+    if(error) alert(error.message); else { alert("Ad Published!"); loadItems(); }
 }
 
 async function loadItems() {
     const { data } = await supabaseClient.from("items").select("*").order("id", { ascending: false });
-    if(data) {
-        allItems = data;
-        renderDisplay(allItems);
-    }
+    if(data) { allItems = data; renderDisplay(data); }
+}
+
+async function loadMyAds() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) return alert("Please login first!");
+    
+    const { data } = await supabaseClient.from("items").select("*").eq("user_id", user.id).order("id", { ascending: false });
+    if(data) { allItems = data; renderDisplay(data); }
 }
 
 async function renderDisplay(dataToShow) {
@@ -168,47 +183,19 @@ async function renderDisplay(dataToShow) {
     const currentUserId = user ? user.id : null;
     
     let html = "";
-    dataToShow.forEach(item => {
-        const waLink = `https://wa.me/${item.phone}?text=Hi, I saw your ${item.title} on UAE Market Hub.`;
-        const isOwner = item.user_id === currentUserId;
+    if (dataToShow.length === 0) {
+        html = `<div class="empty-state"><h3>No ads found.</h3><p>Be the first to post something!</p></div>`;
+    } else {
+        dataToShow.forEach(item => {
+            const waLink = `https://wa.me/${item.phone}?text=Hi, I'm interested in: ${item.title}`;
+            const isOwner = item.user_id === currentUserId;
 
-        html += `
-            <div class="card">
-                ${item.image ? `<img src="${item.image}">` : ""}
-                <div class="price-tag">${item.price} AED</div>
-                <h3 style="margin: 5px 0;">${item.title}</h3>
-                <div class="location-tag">📍 ${item.location} | ${item.category}</div>
-                <p style="font-size: 0.9em; color: #444;">${item.description}</p>
-                <a href="${waLink}" target="_blank" class="whatsapp-btn">💬 Chat on WhatsApp</a>
-                ${isOwner ? `<button class="delete-btn" onclick="deleteItem('${item.id}')">🗑️ Delete My Item</button>` : ""}
-            </div>
-        `;
-    });
-    document.getElementById("items").innerHTML = html || "<p>No items found.</p>";
-}
-
-async function deleteItem(id) {
-    if(!confirm("Are you sure you want to delete this listing?")) return;
-    const { error } = await supabaseClient.from("items").delete().eq("id", id);
-    if(error) alert(error.message); else loadItems();
-}
-
-function filterItems() {
-    const query = document.getElementById("searchBar").value.toLowerCase();
-    const cat = document.getElementById("filterCategory").value;
-    
-    const filtered = allItems.filter(i => {
-        const matchesSearch = i.title.toLowerCase().includes(query);
-        const matchesCat = cat === "All" || i.category === cat;
-        return matchesSearch && matchesCat;
-    });
-    renderDisplay(filtered);
-}
-
-// Init
-checkUser();
-loadItems();
-</script>
-
-</body>
-</html>
+            html += `
+                <div class="card">
+                    <span class="condition-badge">${item.condition || 'Used'}</span>
+                    ${item.image ? `<img src="${item.image}" loading="lazy" alt="${item.title}">` : `<div style="height:200px; background:#eee; border-radius:8px;"></div>`}
+                    <div class="price-tag">${item.price} AED</div>
+                    <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">${item.title}</h3>
+                    <div class="location-tag">📍 ${item.location} | ${item.category}</div>
+                    <p style="font-size: 0.85em; color: #555; margin-bottom: 15px;">${item.description.substring(0, 80)}...</p>
+                    <a href="${waLink}" target="_blank" class="
