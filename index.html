@@ -81,7 +81,145 @@ margin-top:10px;
 
 <script>
 
-const SUPABASE_URL = "https://pseajfcwbirfplujhlye.supabase.co"
+const SUPABASE_URL="https://pseajfcwbirfplujhlye.supabase.co"
 
-c
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzZWFqZmN3YmlyZnBsdWpobHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzk2NjksImV4cCI6MjA4ODcxNTY2OX0.hnDRhO7DX2n0RZoLD9LjdwxlOEch4dTwjhqzE4m_Q8Q"
+
+const supabaseClient = supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+
+
+async function signup(){
+
+const email=document.getElementById("email").value
+const password=document.getElementById("password").value
+
+const {error}=await supabaseClient.auth.signUp({
+email:email,
+password:password
+})
+
+if(error) alert(error.message)
+else alert("Signup successful!")
+
+}
+
+
+async function login(){
+
+const email=document.getElementById("email").value
+const password=document.getElementById("password").value
+
+const {error}=await supabaseClient.auth.signInWithPassword({
+email:email,
+password:password
+})
+
+if(error) alert(error.message)
+else{
+document.getElementById("status").innerText="Logged in as "+email
+}
+
+}
+
+
+async function logout(){
+
+await supabaseClient.auth.signOut()
+
+document.getElementById("status").innerText="Not logged in"
+
+}
+
+
+async function postItem(){
+
+const title=document.getElementById("title").value
+const price=document.getElementById("price").value
+const location=document.getElementById("location").value
+const description=document.getElementById("description").value
+
+const file=document.getElementById("image").files[0]
+
+let imageUrl=""
+
+if(file){
+
+const fileName=Date.now()+"-"+file.name
+
+const {error:uploadError}=await supabaseClient.storage
+.from("images")
+.upload(fileName,file)
+
+if(uploadError){
+alert(uploadError.message)
+return
+}
+
+const {data}=supabaseClient.storage
+.from("images")
+.getPublicUrl(fileName)
+
+imageUrl=data.publicUrl
+
+}
+
+const {error}=await supabaseClient
+.from("items")
+.insert([{
+title,
+price,
+location,
+description,
+image:imageUrl
+}])
+
+if(error) alert(error.message)
+else{
+alert("Item posted!")
+loadItems()
+}
+
+}
+
+
+async function loadItems(){
+
+const {data}=await supabaseClient
+.from("items")
+.select("*")
+.order("id",{ascending:false})
+
+let html=""
+
+data.forEach(item=>{
+
+html+=`
+<div class="card">
+
+<h3>${item.title}</h3>
+
+<p><b>Price:</b> ${item.price}</p>
+
+<p><b>Location:</b> ${item.location}</p>
+
+<p>${item.description}</p>
+
+${item.image ? `<img src="${item.image}">` : ""}
+
+</div>
+`
+
+})
+
+document.getElementById("items").innerHTML=html
+
+}
+
+loadItems()
+
+</script>
+
+</body>
+
+</html>
 ```
