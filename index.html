@@ -3,31 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UAE Market Hub | Verified</title>
+    <title>UAE Market Hub | Verified Marketplace</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a1930">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         :root { --primary: #0a1930; --accent: #25D366; --gold: #ffd700; --bg: #f4f7fa; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; background: var(--bg); }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 15px; background: var(--bg); color: #333; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         
-        /* Auth UI */
-        .auth-card { background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee; }
-        .hidden { display: none !important; }
-        
-        input, select, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
-        button { background: var(--primary); color: white; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
-        button:hover { opacity: 0.9; }
+        /* Header & Labels */
+        h1 { background: linear-gradient(135deg, #0a1930, #1e3c72); color: white; padding: 30px; border-radius: 20px; text-align: center; margin-top: 0; }
+        h2 { border-left: 5px solid var(--primary); padding-left: 12px; font-size: 1.2em; margin-top: 30px; }
 
-        /* Grid */
-        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
-        .card { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #eee; transition: 0.3s; position: relative; display: flex; flex-direction: column; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .card img { width: 100%; height: 200px; object-fit: cover; }
-        .card-content { padding: 15px; flex-grow: 1; }
+        /* Auth Card */
+        .auth-card { background: #f8f9fa; padding: 20px; border-radius: 18px; border: 1px solid #eee; margin-bottom: 25px; }
+        .hidden { display: none !important; }
+
+        /* Form Elements */
+        input, select, textarea, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        button { background: var(--primary); color: white; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-secondary { background: #6c757d; width: auto; padding: 8px 20px; font-size: 14px; }
+
+        /* Grid & Cards */
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: white; border-radius: 20px; overflow: hidden; border: 1px solid #eee; display: flex; flex-direction: column; transition: 0.3s; position: relative; }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .card-img { width: 100%; height: 220px; object-fit: cover; background: #fafafa; }
+        .card-body { padding: 18px; flex-grow: 1; }
         
-        .price { font-size: 1.4em; font-weight: bold; color: var(--primary); }
-        .badge { background: var(--gold); padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; position: absolute; top: 10px; right: 10px; }
-        .whatsapp-btn { background: var(--accent); color: white; text-decoration: none; text-align: center; padding: 12px; border-radius: 10px; display: block; font-weight: bold; margin-top: 10px; }
+        /* Pricing & Badges */
+        .price { font-size: 1.6em; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
+        .badge-featured { position: absolute; top: 15px; right: 15px; background: var(--gold); padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .verified-tag { color: #3498db; font-size: 0.85em; font-weight: 600; display: block; margin-bottom: 15px; }
+
+        .whatsapp-btn { background: var(--accent); color: white; text-decoration: none; text-align: center; padding: 14px; border-radius: 12px; display: block; font-weight: bold; margin-top: 10px; }
+        .safety-note { font-size: 11px; color: #999; text-align: center; margin-top: 10px; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -36,64 +51,79 @@
     <h1>🇦🇪 UAE Market Hub</h1>
 
     <div id="auth-section" class="auth-card">
-        <div id="logged-out-ui">
-            <div style="display: flex; gap: 10px;">
-                <input id="email" placeholder="Email">
-                <input id="password" type="password" placeholder="Password">
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="login()">Login</button>
-                <button onclick="signup()" style="background:#555">Sign Up</button>
-            </div>
+        <div id="otp-step-1">
+            <p style="margin:0 0 10px 0; font-size: 14px; font-weight: 600;">Sign in with your Email</p>
+            <input id="email" type="email" placeholder="e.g. yourname@gmail.com">
+            <button onclick="sendOTP()">Send 6-Digit Code</button>
         </div>
+        
+        <div id="otp-step-2" class="hidden">
+            <p style="margin:0 0 10px 0; font-size: 14px; font-weight: 600;">Check your email for the code!</p>
+            <input id="otp-code" type="text" maxlength="6" placeholder="Enter 6-Digit Code">
+            <button onclick="verifyOTP()" style="background: var(--accent);">Verify & Login</button>
+            <button onclick="location.reload()" style="background:none; color:#777; font-size:12px; text-decoration: underline; border:none; width:auto;">Change Email</button>
+        </div>
+
         <div id="logged-in-ui" class="hidden">
-            <p id="user-greeting" style="font-weight: bold; margin: 0;"></p>
-            <button onclick="logout()" style="width: auto; background: #666; padding: 5px 15px; margin-top: 10px;">Logout</button>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="user-greeting" style="font-weight: bold; color: var(--primary);"></span>
+                <button onclick="logout()" class="btn-secondary">Logout</button>
+            </div>
         </div>
-        <p id="session-status" style="text-align: center; font-size: 12px; color: #888; margin-top: 10px;">Checking session...</p>
+        <p id="session-status" style="font-size: 11px; color: #aaa; margin-top: 8px; text-align: center;">Secure OTP Authentication</p>
     </div>
 
-    <div id="post-area">
-        <h2>Post an Ad</h2>
-        <input id="title" placeholder="Item Name">
-        <input id="price" type="number" placeholder="Price (AED)">
-        <input id="phone" placeholder="WhatsApp Number (971...)">
-        <input id="image" type="file" accept="image/*">
-        <button onclick="postItem()" style="background: var(--accent);">🚀 Publish My Ad</button>
-    </div>
-
-    <hr style="margin: 30px 0;">
-
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>Marketplace</h2>
+    <div id="post-ad-area">
+        <h2>Post a Verified Ad</h2>
+        <input id="title" placeholder="Item Name (e.g. Sofa, iPhone, Car)">
         <div style="display: flex; gap: 10px;">
-            <button onclick="loadItems()" style="width: auto; padding: 8px 15px;">🌐 All</button>
-            <button onclick="loadMyAds()" style="width: auto; padding: 8px 15px; background: #e67e22;">👤 My Ads</button>
+            <input id="price" type="number" placeholder="Price (AED)">
+            <select id="category">
+                <option>Electronics</option><option>Furniture</option><option>Vehicles</option><option>Fashion</option>
+            </select>
         </div>
+        <input id="phone" placeholder="WhatsApp Number (e.g. 97150xxxxxxx)">
+        <input id="image-input" type="file" accept="image/*">
+        <button onclick="postItem()" style="background: var(--accent); height: 55px;">🚀 Publish Ad</button>
+    </div>
+
+    <hr style="margin: 40px 0; border: 0; border-top: 1px solid #eee;">
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <h2>Featured Listings</h2>
+        <button onclick="loadMyAds()" class="btn-secondary" style="background:#e67e22; margin-bottom: 10px;">👤 My Ads</button>
     </div>
     
     <div id="items-list" class="items-grid"></div>
 </div>
 
 <script>
+// --- CONFIGURATION ---
 const SUPABASE_URL = "https://pseajfcwbirfplujhlye.supabase.co"
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzZWFqZmN3YmlyZnBsdWpobHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzk2NjksImV4cCI6MjA4ODcxNTY2OX0.hnDRhO7DX2n0RZoLD9LjdwxlOEch4dTwjhqzE4m_Q8Q"
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-const ADMIN_PHONE = "971501234567"; // Update to your number
+const ADMIN_NUMBER = "971501234567"; // <-- Update this to your WhatsApp
 
 // --- AUTH LOGIC ---
-async function login() {
+async function sendOTP() {
     const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if(error) alert(error.message); else location.reload();
+    if(!email) return alert("Enter email!");
+    
+    const { error } = await supabaseClient.auth.signInWithOtp({ email });
+    if(error) alert(error.message);
+    else {
+        document.getElementById("otp-step-1").classList.add("hidden");
+        document.getElementById("otp-step-2").classList.remove("hidden");
+        alert("6-Digit Code sent to your inbox!");
+    }
 }
 
-async function signup() {
+async function verifyOTP() {
     const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const { error } = await supabaseClient.auth.signUp({ email, password });
-    if(error) alert(error.message); else alert("Check email for verification!");
+    const token = document.getElementById("otp-code").value;
+    const { error } = await supabaseClient.auth.verifyOtp({ email, token, type: 'email' });
+    if(error) alert("Invalid code. Try again.");
+    else location.reload();
 }
 
 async function logout() {
@@ -101,12 +131,12 @@ async function logout() {
     location.reload();
 }
 
-// --- DATA LOGIC ---
+// --- ITEM LOGIC ---
 async function postItem() {
     const { data: { user } } = await supabaseClient.auth.getUser();
-    if(!user) return alert("Login required!");
+    if(!user) return alert("Please sign in first!");
 
-    const file = document.getElementById("image").files[0];
+    const file = document.getElementById("image-input").files[0];
     let imageUrl = "";
     if(file) {
         const fileName = `${Date.now()}-${file.name}`;
@@ -132,66 +162,62 @@ async function loadItems() {
 
 async function loadMyAds() {
     const { data: { user } } = await supabaseClient.auth.getUser();
-    if(!user) return alert("Login first!");
-    const { data } = await supabaseClient.from("items").select("*").eq("user_id", user.id).order("id", { ascending: false });
+    if(!user) return alert("Login to see your ads!");
+    const { data } = await supabaseClient.from("items").select("*").eq("user_id", user.id);
     renderDisplay(data || []);
 }
 
-async function renderDisplay(data) {
-    const { data: { user } } = await supabaseClient.auth.getUser();
+function renderDisplay(data) {
     let html = "";
-    data.forEach(item => {
+    data.forEach(async (item) => {
+        const { data: { user } } = await supabaseClient.auth.getUser();
         const isOwner = user && item.user_id === user.id;
-        html += `
+        
+        const cardHtml = `
             <div class="card" style="${item.is_featured ? 'border: 2px solid var(--gold)' : ''}">
-                ${item.is_featured ? '<span class="badge">⭐ FEATURED</span>' : ''}
-                <img src="${item.image || 'https://via.placeholder.com/300x200'}" loading="lazy">
-                <div class="card-content">
+                ${item.is_featured ? '<span class="badge-featured">⭐ FEATURED</span>' : ''}
+                <img src="${item.image || 'https://via.placeholder.com/400x250'}" class="card-img" loading="lazy">
+                <div class="card-body">
                     <div class="price">${item.price} AED</div>
-                    <div style="font-weight:bold; margin-bottom:10px;">${item.title}</div>
-                    <a href="https://wa.me/${item.phone}" target="_blank" class="whatsapp-btn">💬 WhatsApp</a>
+                    <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 5px;">${item.title}</div>
+                    <span class="verified-tag">☑️ Verified Seller</span>
+                    
+                    <a href="https://wa.me/${item.phone}" target="_blank" class="whatsapp-btn">💬 WhatsApp Seller</a>
+                    <p class="safety-note">⚠️ Never pay before seeing the item. Meet in public.</p>
+                    
                     ${isOwner ? `
-                        <a href="https://wa.me/${ADMIN_PHONE}?text=Boost Ad ID: ${item.id}" target="_blank" style="display:block; text-align:center; font-size:12px; color:var(--primary); margin-top:10px; font-weight:bold;">🚀 Boost this Ad</a>
-                        <button onclick="deleteItem('${item.id}')" style="background:none; color:red; border:none; font-size:11px; margin-top:10px;">Delete Ad</button>
+                        <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
+                            <a href="https://wa.me/${ADMIN_NUMBER}?text=Boost My Ad ID: ${item.id}" style="color:var(--gold); font-weight:bold; text-decoration:none; font-size:13px;">🚀 Boost Ad to Top</a>
+                            <button onclick="deleteItem('${item.id}')" style="background:none; color:#ff4d4d; border:none; font-size:12px; width:auto; padding:0; margin-left:15px;">Delete</button>
+                        </div>
                     ` : ""}
                 </div>
             </div>
         `;
+        document.getElementById("items-list").insertAdjacentHTML('beforeend', cardHtml);
     });
-    document.getElementById("items-list").innerHTML = html || "No ads found.";
+    document.getElementById("items-list").innerHTML = ""; // Clear loader
+    if(data.length === 0) document.getElementById("items-list").innerHTML = "No ads found.";
 }
 
 async function deleteItem(id) {
-    if(confirm("Delete ad?")) {
+    if(confirm("Permanently delete this ad?")) {
         await supabaseClient.from("items").delete().eq("id", id);
         loadItems();
     }
 }
 
-// --- INITIALIZATION (THE FIX) ---
+// --- INIT ---
 (async () => {
-    // Fail-safe: Always try to load items after 1.5 seconds even if auth is stuck
-    const failSafe = setTimeout(() => {
-        if(document.getElementById("session-status").innerText === "Checking session...") {
-            document.getElementById("session-status").innerText = "Connection slow... loading ads anyway.";
-            loadItems();
-        }
-    }, 1500);
-
     const { data: { user } } = await supabaseClient.auth.getUser();
-    clearTimeout(failSafe); // Auth responded, stop the fail-safe timer
-
-    if (user) {
-        document.getElementById("logged-out-ui").classList.add("hidden");
+    if(user) {
+        document.getElementById("otp-step-1").classList.add("hidden");
         document.getElementById("logged-in-ui").classList.remove("hidden");
-        document.getElementById("user-greeting").innerText = `Welcome, ${user.email}`;
-        document.getElementById("session-status").innerText = "Logged in successfully.";
-    } else {
-        document.getElementById("session-status").innerText = "Not logged in.";
+        document.getElementById("user-greeting").innerText = `Hi, ${user.email.split('@')[0]}`;
+        document.getElementById("session-status").innerText = "Logged in via OTP";
     }
     loadItems();
 })();
 </script>
-
 </body>
 </html>
